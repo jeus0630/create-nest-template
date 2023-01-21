@@ -10,4 +10,9 @@ A working-level NestJS template!
     ```zsh
     docker-compose up -d
     ```
-3. Enjoy your coding!
+3. Copy `.env.template` to `.development.env` and ***add values***
+4. Run your app
+    ```zsh
+    yarn start:dev
+    ```
+5. Enjoy your coding! (you can find swagger at *http://localhost:3000/docs*)
