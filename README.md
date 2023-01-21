@@ -1,7 +1,7 @@
 ![record](./nest-template.gif)
 
 # Create NestJS Template
-*****`yarn & ` `Docker`** are prerequisites for this project!***  
+*****`yarn & Docker`** are prerequisites for this project!***  
 
 You can create a new NestJS project with this CLI.   
    
