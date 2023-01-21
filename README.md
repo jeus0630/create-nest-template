@@ -1,4 +1,3 @@
-![record](./record.gif)
 # Create NestJS Template
 *****`yarn & ` `Docker`** are prerequisites for this project!***  
 
