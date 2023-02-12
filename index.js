@@ -124,6 +124,8 @@ function postProcess(options) {
             console.log(chalk_1.default.yellow(`  yarn`));
             console.log(chalk_1.default.dim("\nConfigure app:"));
             console.log(chalk_1.default.yellow(`  docker-compose up -d`));
+            console.log(chalk_1.default.dim("\nCopy & Update env:"));
+            console.log(chalk_1.default.yellow(`  cp .env.template .development.env`));
             console.log(chalk_1.default.dim("\nRun app:"));
             console.log(chalk_1.default.yellow(`  yarn start:dev`));
             console.log(chalk_1.default.green("\nEnjoy!\n"));
