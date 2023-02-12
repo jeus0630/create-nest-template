@@ -6,6 +6,8 @@ import {
   Post,
   UseGuards,
   Get,
+  Req,
+  Res,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import {
@@ -23,6 +25,7 @@ import {
   ApiNotFoundResponse,
   ApiParam,
 } from '@nestjs/swagger';
+import { Request, Response } from 'express';
 import { Token } from 'src/common/auth/token.decorator';
 import {
   BadRequestExceptionDto,
@@ -36,7 +39,9 @@ import { User } from 'src/entities/user.entity';
 import { SigninRequestDto, SignupRequestDto } from './dto/user.request.dto';
 import {
   SigninResponseDto,
+  SignoutResponseDto,
   SignupResponseDto,
+  UpdateAccessTokenResponseDto,
   UserFindResponseDto,
 } from './dto/user.response.dto';
 import { UserService } from './user.service';
@@ -54,7 +59,6 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post('/signup')
   @ApiOperation({ summary: '회원가입' })
   @ApiCreatedResponse({
     description: '회원가입 성공',
@@ -68,11 +72,11 @@ export class UserController {
     description: '이메일 중복',
     type: ConfilctEmailExceptionDto,
   })
+  @Post('/signup')
   async signUp(@Body() req: SignupRequestDto): Promise<SignupResponseDto> {
     return await this.userService.signUp(req);
   }
 
-  @Post('/signin')
   @ApiOperation({ summary: '로그인' })
   @ApiOkResponse({
     description: '로그인 성공',
@@ -90,11 +94,72 @@ export class UserController {
     description: '인증 실패',
     type: UnauthorizedExceptionDto,
   })
-  async singIn(@Body() req: SigninRequestDto): Promise<SigninResponseDto> {
-    return await this.userService.signIn(req);
+  @Post('/signin')
+  async singIn(
+    @Body() req: SigninRequestDto,
+    @Res() res: Response,
+  ): Promise<Response<Partial<SigninResponseDto>, Record<string, any>>> {
+    const response = await this.userService.signIn(req);
+    const { refreshToken, accessToken } = response;
+
+    res.cookie('refreshToken', refreshToken, {
+      maxAge: 24 * 60 * 60 * 1000 * 365,
+      sameSite: 'strict',
+      httpOnly: true,
+      // secure: true
+    });
+
+    return res.send({
+      message: '로그인 성공',
+      id: response.id,
+      accessToken: accessToken,
+    });
   }
 
-  @Get('/:id')
+  @Get('refresh/:id')
+  @ApiOperation({ summary: '토큰 재발급' })
+  @ApiOkResponse({
+    description: '재발급 성공',
+    type: UpdateAccessTokenResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: '인증 실패',
+    type: UnauthorizedExceptionDto,
+  })
+  async updateAccessToken(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Param('id') id: string,
+  ): Promise<Response<UpdateAccessTokenResponseDto>> {
+    const { message, accessToken } = await this.userService.updateAccessToken(
+      req,
+      res,
+      id,
+    );
+
+    return res.send({
+      message,
+      accessToken,
+    });
+  }
+
+  @Post('/:id/signout')
+  @ApiOperation({ summary: '로그아웃' })
+  @ApiBearerAuth()
+  @ApiSecurity('access-token')
+  @ApiOkResponse({
+    description: '로그아웃 성공',
+    type: SignoutResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: '인증 실패',
+    type: UnauthorizedExceptionDto,
+  })
+  @UseGuards(AuthGuard())
+  async signout(@Param() id: string): Promise<SignoutResponseDto> {
+    return await this.userService.signOut(+id);
+  }
+
   @ApiOperation({ summary: '프로필 조회' })
   @ApiBearerAuth()
   @ApiSecurity('access-token')
@@ -113,6 +178,7 @@ export class UserController {
     example: 1,
     required: true,
   })
+  @Get('/:id')
   @UseGuards(AuthGuard())
   async findOne(
     @Param('id', ParseIntPipe) id: number,

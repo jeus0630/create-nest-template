@@ -35,6 +35,7 @@ lerna-debug.log*
 !.vscode/extensions.json
 
 /mysql/mysql_data
+/redis/redis_data
 
 .development.env
 .stage.env

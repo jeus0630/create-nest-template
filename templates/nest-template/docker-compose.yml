@@ -2,8 +2,7 @@ version: '3.8'
 services:
   mysql:
     container_name: nestjs-template-mysql
-    image: mysql:5.7.32
-    platform: linux/x86_64
+    image: mysql:5.7.27
     restart: always
     environment:
       - MYSQL_USER=root
@@ -21,3 +20,10 @@ services:
         '--character-set-server=utf8mb4',
         '--collation-server=utf8mb4_unicode_ci',
       ]
+  redis:
+    container_name: nestjs-template-redis
+    image: redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - ./redis/redis_data:/data
